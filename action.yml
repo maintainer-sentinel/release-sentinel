@@ -11,6 +11,10 @@ inputs:
     description: Output format, either text or json.
     required: false
     default: "text"
+  private-patterns-file:
+    description: File containing one private identity pattern per line.
+    required: false
+    default: ".release-sentinel-private-patterns"
 
 runs:
   using: composite
@@ -21,4 +25,4 @@ runs:
 
     - name: Run release-readiness checks
       shell: bash
-      run: release-sentinel --root "${{ inputs.root }}" --format "${{ inputs.format }}"
+      run: release-sentinel --root "${{ inputs.root }}" --format "${{ inputs.format }}" --private-patterns-file "${{ inputs.private-patterns-file }}"

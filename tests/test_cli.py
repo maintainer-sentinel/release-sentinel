@@ -47,6 +47,22 @@ class CliTest(unittest.TestCase):
         self.assertEqual(exit_code, 1)
         self.assertIn("Private identity scan", stdout.getvalue())
 
+    def test_private_patterns_file_flags_matching_text(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            self._write_healthy_repo(root)
+            (root / ".release-sentinel-private-patterns").write_text(
+                "# comments are ignored\nprivate@example.invalid\n\n",
+                encoding="utf-8",
+            )
+            (root / "README.md").write_text("# Example\ncontact private@example.invalid\n", encoding="utf-8")
+            stdout = io.StringIO()
+
+            exit_code = main(["--root", str(root)], stdout=stdout)
+
+        self.assertEqual(exit_code, 1)
+        self.assertIn("Private identity scan", stdout.getvalue())
+
     @staticmethod
     def _write_healthy_repo(root: Path) -> None:
         files = {

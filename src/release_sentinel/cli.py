@@ -9,6 +9,9 @@ from typing import TextIO
 from release_sentinel.checks import CheckResult, run_checks
 
 
+DEFAULT_PRIVATE_PATTERNS_FILE = ".release-sentinel-private-patterns"
+
+
 def main(argv: list[str] | None = None, stdout: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="release-sentinel",
@@ -27,10 +30,17 @@ def main(argv: list[str] | None = None, stdout: TextIO | None = None) -> int:
         default=[],
         help="Private identity string to scan for. May be passed multiple times.",
     )
+    parser.add_argument(
+        "--private-patterns-file",
+        default=DEFAULT_PRIVATE_PATTERNS_FILE,
+        help="File containing one private identity pattern per line.",
+    )
     args = parser.parse_args(argv)
 
     output = stdout or sys.stdout
-    results = run_checks(Path(args.root), private_patterns=args.private_pattern)
+    root = Path(args.root)
+    private_patterns = [*args.private_pattern, *_load_private_patterns(root / args.private_patterns_file)]
+    results = run_checks(root, private_patterns=private_patterns)
     if args.format == "json":
         _write_json(results, output)
     else:
@@ -56,6 +66,17 @@ def _write_text(results: list[CheckResult], output: TextIO) -> None:
     for result in results:
         status = "PASS" if result.passed else "FAIL"
         output.write(f"[{status}] {result.title}: {result.detail}\n")
+
+
+def _load_private_patterns(path: Path) -> list[str]:
+    if not path.is_file():
+        return []
+    patterns: list[str] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if stripped and not stripped.startswith("#"):
+            patterns.append(stripped)
+    return patterns
 
 
 if __name__ == "__main__":

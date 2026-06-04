@@ -1,8 +1,20 @@
 # Release Sentinel
 
+[![CI](https://github.com/maintainer-sentinel/release-sentinel/actions/workflows/ci.yml/badge.svg)](https://github.com/maintainer-sentinel/release-sentinel/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/maintainer-sentinel/release-sentinel?display_name=tag)](https://github.com/maintainer-sentinel/release-sentinel/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Release Sentinel is a small release-readiness CLI and GitHub Action for open-source maintainers. It checks whether a repository has the basic operating signals maintainers rely on before publishing: maintainer docs, security policy, CI, tests, changelog structure, package metadata, and obvious private identity leakage.
 
 The project is intentionally dependency-light. Maintainers should be able to run it in a local checkout, a release workflow, or a downstream repository without adopting a large governance platform.
+
+## Why Maintainers Use This
+
+- Catch release blockers before tagging a version.
+- Give contributors clear signals that a project is actively maintained.
+- Keep security and contribution process files visible.
+- Run the same check locally and in CI.
+- Scan for maintainer-configured private identity strings before public pushes.
 
 ## Ecosystem Role
 
@@ -54,10 +66,35 @@ python3 -m pip install -e .
 release-sentinel --root .
 ```
 
+Example output:
+
+```text
+[PASS] Required maintainer docs: README, contributing, security, and changelog files are present.
+[PASS] CI workflow: Found 1 workflow file(s).
+[PASS] Automated tests: Found 2 Python test file(s).
+[PASS] Package metadata: pyproject.toml is present.
+[PASS] Changelog format: CHANGELOG.md includes a release-oriented heading.
+[PASS] Private identity scan: No private identity patterns configured.
+```
+
 Machine-readable output:
 
 ```bash
 release-sentinel --root . --format json
+```
+
+Privacy patterns can be passed directly:
+
+```bash
+release-sentinel --root . --private-pattern "private@example.invalid"
+```
+
+Or stored one per line in `.release-sentinel-private-patterns`:
+
+```text
+# comments and blank lines are ignored
+private@example.invalid
+internal-domain.example
 ```
 
 Run directly from the source tree:
@@ -95,6 +132,12 @@ jobs:
 | Package metadata | `pyproject.toml` exists |
 | Changelog format | `CHANGELOG.md` includes a release or `Unreleased` heading |
 | Private identity scan | configured private identity strings are not present in text-like files |
+
+See `docs/checks.md` for check details and `docs/privacy.md` for privacy-scan behavior.
+
+## What This Is Not
+
+Release Sentinel is not a compliance framework, security scanner, or replacement for maintainer judgment. It is a fast release-readiness guardrail for common repository-health signals.
 
 ## Usage Metrics & Impact Targets
 
