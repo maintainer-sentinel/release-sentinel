@@ -1,0 +1,24 @@
+name: Release Sentinel
+description: Check whether a repository is ready for an open-source release.
+author: maintainer-sentinel
+
+inputs:
+  root:
+    description: Repository root to inspect.
+    required: false
+    default: "."
+  format:
+    description: Output format, either text or json.
+    required: false
+    default: "text"
+
+runs:
+  using: composite
+  steps:
+    - name: Install Release Sentinel
+      shell: bash
+      run: python3 -m pip install -e "$GITHUB_ACTION_PATH"
+
+    - name: Run release-readiness checks
+      shell: bash
+      run: release-sentinel --root "${{ inputs.root }}" --format "${{ inputs.format }}"
